@@ -3,6 +3,8 @@
 #include <queue>
 #include <chrono>
 #include <unordered_map>
+#include "headersRTOS/DisplayTime.h"
+#include "headersRTOS/StepCounter.h"
 
 using namespace std;
 
@@ -27,10 +29,17 @@ Task CountTime={"Count Time",1,4};
 Task StepCount={"Step Count",1,3};
 
 void CountTimer(){
+    cout<<"Current Time : ";
     if(CountTime.variables.find("time")==CountTime.variables.end()){
         CountTime.variables["time"]=1;
-    }else CountTime.variables["time"]+=1;
-    cout<<"runiing count timer"<<'\n';
+        for(auto v : DisplayTime(0)) cout<<v<<" ";
+        cout<<"\n";
+    }else{
+        CountTime.variables["time"]+=1;
+        for(auto v : DisplayTime(1)) cout<<v<<" ";
+        cout<<"\n";
+    }
+    // cout<<"running count timer"<<'\n';
     // std::chrono::seconds(5);
     
 }
@@ -38,17 +47,8 @@ void StepCounter(){
     if(StepCount.variables.find("step")==StepCount.variables.end()){
         StepCount.variables["step"]=1;
     }else StepCount.variables["step"]+=1;
-    cout<<"runiing Step timer"<<'\n';
+    cout<<"Current Steps: "<<countSteps(1)<<"\n";
 }
-// struct comparePriority{
-//     bool operator()(pair<int,Task> const& Task1,pair<int,Task> const& Task2){
-//         return Task1.first<Task2.first;
-//     }
-// };
-
-
-
-// priority_queue<pair<int,Task>> tasklist;
 priority_queue<Task> tasklist;
 
 void Schedule()
@@ -66,13 +66,15 @@ void Schedule()
             else currentTask.CpuCyclesDone--;
             CpuCycle += 1;
             tasklist.push(currentTask);
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }   
     
 
 }
 int main() {
+    vector<int> a = DisplayTime(0);
+    countSteps(0);
     CountTime.func=CountTimer;
     StepCount.func=StepCounter;
     tasklist.push(StepCount);

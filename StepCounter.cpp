@@ -2,6 +2,8 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include "headersRTOS/StepCounter.h"
+
 using namespace std;
 
 
@@ -36,14 +38,14 @@ int countSteps(int reset) {
     return steps;
 }
 
-int main() {
-    cout<<countSteps(0)<<'\n';
-    for (int i=0;i<10;i++)
-    {
-        cout<<countSteps(1)<<'\n';
-        this_thread::sleep_for(std::chrono::seconds(2));
-    }
+// int main() {
+//     cout<<countSteps(0)<<'\n';
+//     for (int i=0;i<10;i++)
+//     {
+//         cout<<countSteps(1)<<'\n';
+//         this_thread::sleep_for(std::chrono::seconds(2));
+//     }
 
 
-    return 0;
-}
+//     return 0;
+// }
