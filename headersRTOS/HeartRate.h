@@ -1,4 +1,4 @@
-#ifndef StepCounter_H
-#define StepCounter_H
-void HeartRate();
+#ifndef HeartRate_H
+#define HeartRate_H
+void heartRate();
 #endif

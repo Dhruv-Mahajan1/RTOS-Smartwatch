@@ -8,6 +8,7 @@
 #include "headersRTOS/StepCounter.h"
 #include "headersRTOS/Task.h"
 #include "headersRTOS/Create_Task.h"
+#include "headersRTOS/HeartRate.h"
 
 using namespace std;
 #define O_CREAT 0x00000200
@@ -39,25 +40,6 @@ void StepCounter(){
     }else StepCount.variables["step"]+=1;
     cout<<"Current Steps: "<<countSteps(1)<<"\n";
 }
-// For hearrate
-int randv(int a ,int b){
-    return a + rand()%(b-a+1);
-}
-
-void heartRate(){
-    cout<<"Gathering Data : ";
-    int total = 0;
-    for(int i = 0;i<10;i+=1){
-        int cur = randv(60,90);
-        cout<<cur<<" ";
-        total+=cur;
-        cout.flush();
-        std::this_thread::yield();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-    cout<<"\n";
-    cout<<"Heart Rate : "<<total/10<<'\n';
-}
 
 void Schedule()
 {
@@ -65,7 +47,7 @@ void Schedule()
     {   
         sem_wait(sem);
         if(!tasklist.empty()) {
-            cout<<"current cpu cycle :"<<CpuCycle<<'\n';
+            // cout<<"current cpu cycle :"<<CpuCycle<<'\n';
             auto currentTask = tasklist.top();tasklist.pop();
             bool done = 0;
             if(currentTask.CpuCyclesDone==0)
@@ -94,10 +76,12 @@ int main() {
     StepCount.func=StepCounter;
     tasklist.push(StepCount);
     tasklist.push(CountTime);
+    cout<<"Basic Setup Done...\n";
     thread Scheduler(Schedule);
     string input;
     sem_unlink("/my_semaphore");
     sem = sem_open("/my_semaphore", O_CREAT, 0644, 1);
+    
     // cout<<"basic step done now scheduling"<<'\n';
     
     while(true){
