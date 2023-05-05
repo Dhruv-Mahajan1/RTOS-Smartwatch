@@ -5,28 +5,15 @@
 #include <unordered_map>
 #include "headersRTOS/DisplayTime.h"
 #include "headersRTOS/StepCounter.h"
+#include "headersRTOS/Task.h"
+#include "headersRTOS/Create_Task.h"
 
 using namespace std;
 
 
 int CpuCycle=0;
-
-struct Task {
-    string name;
-    int priority;
-    int CpuCyclesRequired;
-    void(*func)();
-    int CpuCyclesDone=CpuCyclesRequired;
-    unordered_map<string,int>variables;
-
-    bool operator<(const Task &y) const{
-        return priority<y.priority;
-    }
-    
-};
-
-Task CountTime={"Count Time",1,4};
-Task StepCount={"Step Count",1,3};
+Task CountTime=create_task("T");
+Task StepCount=create_task("S");
 
 void CountTimer(){
     cout<<"Current Time : ";
