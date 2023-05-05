@@ -17,6 +17,10 @@ Task create_task(std::string type){
     else if(type == "T"){
         ret = Task{"Show Time",1 ,4,1};
     }
+    // Set Alarm
+    else if(type == "A"){
+        ret = Task{"Alarm Task",2,1,0};
+    }
     // Throw Error 
     else{
         ret =  Task{"Problem",100,1,1};

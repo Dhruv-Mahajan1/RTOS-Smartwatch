@@ -18,17 +18,23 @@ Task CountTime=create_task("T");
 Task StepCount=create_task("S");
 priority_queue<Task> tasklist;
 sem_t *sem;
+bool Alarm = 0;
+int Alarm_time = 0;
+int curCycle = 0;
+int Alarm_cnt;
+string alarmMessage = "";
+
 void CountTimer(){
     if(CountTime.variables.find("time")==CountTime.variables.end()){
         vector<int>v=updateTime(0,CpuCycle);
-        CountTime.variables["hour"]=v[0];
-        CountTime.variables["minute"]=v[1];
+        CountTime.variables["hours"]=v[0];
+        CountTime.variables["minutes"]=v[1];
         CountTime.variables["seconds"]=v[2];
         
     }else{
         vector<int>v=updateTime(1,CpuCycle);
-        CountTime.variables["hour"]=v[0];
-        CountTime.variables["minute"]=v[1];
+        CountTime.variables["hours"]=v[0];
+        CountTime.variables["minutes"]=v[1];
         CountTime.variables["seconds"]=v[2];
     }
     
@@ -41,19 +47,40 @@ void StepCounter(){
     
 }
 
+void AlarmPrint(){
+    cout<<"Beep! Beep! Beep!"<<alarmMessage<<'\n';
+    if(!Alarm) cout<<"Alarm off\n";
+}
+
 void Schedule()
 {
-    cout<<"Scheduling the two background tasks "<<endl;
+    
     while (true)
     {   
         // cout<<"CpuCycle is "<< CpuCycle<<endl;
+        
         sem_wait(sem);
+        if(Alarm){
+            if(CpuCycle-curCycle>=Alarm_time){
+                Task temp = create_task("A");
+                temp.func = AlarmPrint;
+                tasklist.push(temp);
+                curCycle = CpuCycle;
+                Alarm_cnt--;
+                if(Alarm_cnt==0){
+                    Alarm = 0;
+                }
+            }
+            
+            
+        }
         if(!tasklist.empty()) {
             // cout<<"current cpu cycle :"<<CpuCycle<<'\n';
             auto currentTask = tasklist.top();tasklist.pop();
             bool done = 0;
             if(currentTask.CpuCyclesDone==0)
             {
+
                 currentTask.func();
                 currentTask.CpuCyclesDone=currentTask.CpuCyclesRequired;
                 done = 1;
@@ -68,7 +95,7 @@ void Schedule()
         }
         sem_post(sem);
         std::this_thread::yield();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }   
     
 
@@ -80,6 +107,7 @@ int main() {
     tasklist.push(StepCount);
     tasklist.push(CountTime);
     cout<<"Basic Setup Done...\n";
+    cout<<"Scheduling the two background tasks "<<endl;
     thread Scheduler(Schedule);
     string input;
     sem_unlink("/my_semaphore");
@@ -95,15 +123,31 @@ int main() {
             sem_wait(sem);
             if(input == "Show Heart Rate"){
                 Task temp = create_task("H");
-                cout<<temp.CpuCyclesRequired<<'\n';
                 temp.func = heartRate;
                 tasklist.push(temp);
             }
-            if(input == "Show Steps"){
+            else if(input == "Show Steps"){
                cout<<"No of Steps : "<<StepCount.variables["step"]<<"\n";
             }
-            if(input == "Show Time"){
-               cout<<"Current Time : "<<CountTime.variables["hours"]<<" : "<<CountTime.variables["minute"]<<" : "<<CountTime.variables["seconds"]<<"\n";
+            else if(input == "Show Time"){
+               cout<<"Current Time : "<<CountTime.variables["hours"]<<" : "<<CountTime.variables["minutes"]<<" : "<<CountTime.variables["seconds"]<<"\n";
+            }
+            else if(input == "Set Alarm"){
+                
+                cout<<"Alarm Period(seconds): ";
+                int k;
+                std::cin>>k;
+                Alarm_time = k*5;
+                Alarm_cnt = 3;
+                // cout<<k<<"\n";
+                // cout<<"Alarm Message: ";
+                // std::getline(std::cin,alarmMessage);
+                Alarm = 1;
+                curCycle = CpuCycle;
+            }
+            else if(input==""){}
+            else{
+                cout<<"You didn't enter a valid task!\n";
             }
             sem_post(sem);
             // cout<<"out\n";
