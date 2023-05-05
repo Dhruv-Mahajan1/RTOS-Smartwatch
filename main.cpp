@@ -3,6 +3,7 @@
 #include <queue>
 #include <chrono>
 #include <unordered_map>
+#include <semaphore.h>
 #include "headersRTOS/DisplayTime.h"
 #include "headersRTOS/StepCounter.h"
 #include "headersRTOS/Task.h"
@@ -14,6 +15,8 @@ using namespace std;
 int CpuCycle=0;
 Task CountTime=create_task("T");
 Task StepCount=create_task("S");
+priority_queue<Task> tasklist;
+sem_t *sem;
 
 void CountTimer(){
     cout<<"Current Time : ";
@@ -36,36 +39,88 @@ void StepCounter(){
     }else StepCount.variables["step"]+=1;
     cout<<"Current Steps: "<<countSteps(1)<<"\n";
 }
-priority_queue<Task> tasklist;
+// For hearrate
+int randv(int a ,int b){
+    return a + rand()%(b-a+1);
+}
+
+void heartRate(){
+    cout<<"Gathering Data : ";
+    int total = 0;
+    for(int i = 0;i<10;i+=1){
+        int cur = randv(60,90);
+        cout<<cur<<" ";
+        total+=cur;
+        cout.flush();
+        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    cout<<"\n";
+    cout<<"Heart Rate : "<<total/10<<'\n';
+}
 
 void Schedule()
 {
     while (true)
-    {
-        while (!tasklist.empty()) {
+    {   
+        sem_wait(sem);
+        if(!tasklist.empty()) {
             cout<<"current cpu cycle :"<<CpuCycle<<'\n';
             auto currentTask = tasklist.top();tasklist.pop();
+            bool done = 0;
             if(currentTask.CpuCyclesDone==0)
             {
                 currentTask.func();
                 currentTask.CpuCyclesDone=currentTask.CpuCyclesRequired;
+                done = 1;
             }
             else currentTask.CpuCyclesDone--;
             CpuCycle += 1;
-            tasklist.push(currentTask);
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            if(!done) tasklist.push(currentTask);
+            else{
+                if(currentTask.periodic) tasklist.push(currentTask);
+            }
         }
+        sem_post(sem);
+        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }   
     
 
 }
 int main() {
+    
     vector<int> a = DisplayTime(0);
     countSteps(0);
     CountTime.func=CountTimer;
     StepCount.func=StepCounter;
     tasklist.push(StepCount);
     tasklist.push(CountTime);
+    thread Scheduler(Schedule);
+    string input;
+    sem_unlink("/my_semaphore");
+    sem = sem_open("/my_semaphore", O_CREAT, 0644, 1);
     cout<<"basic step done now scheduling"<<'\n';
-    Schedule();
+    
+    while(true){
+        if(std::cin.peek()!=EOF){
+            // std::cin>>input;
+            std::getline(std::cin,input);
+            // std::cout<<input<<"\n";
+            sem_wait(sem);
+            if(input == "H"){
+                Task temp = create_task("H");
+                cout<<temp.CpuCyclesRequired<<'\n';
+                temp.func = heartRate;
+                tasklist.push(temp);
+            }
+            sem_post(sem);
+            // cout<<"out\n";
+        }
+        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        
+    }
+    sem_close(sem);
+    sem_unlink("/my_semaphore");
 }

@@ -19,7 +19,7 @@ int random(int min, int max) {
     return distrib(gen);
 }
 
-int readSensor()
+int readStepSensor()
 {
     int randInt = random(1, 100);
     return randInt;
@@ -31,7 +31,7 @@ int countSteps(int reset) {
         steps = 0;
         lastReading = 0; 
     }
-    int reading = readSensor();
+    int reading = readStepSensor();
     this_thread::sleep_for(std::chrono::milliseconds(latency));
     if (reading > lastReading + threshold)steps++;
     lastReading = reading;
