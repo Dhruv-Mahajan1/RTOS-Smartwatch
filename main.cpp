@@ -10,7 +10,7 @@
 #include "headersRTOS/Create_Task.h"
 
 using namespace std;
-
+#define O_CREAT 0x00000200
 
 int CpuCycle=0;
 Task CountTime=create_task("T");
@@ -90,8 +90,6 @@ void Schedule()
 }
 int main() {
     
-    vector<int> a = DisplayTime(0);
-    countSteps(0);
     CountTime.func=CountTimer;
     StepCount.func=StepCounter;
     tasklist.push(StepCount);
@@ -100,7 +98,7 @@ int main() {
     string input;
     sem_unlink("/my_semaphore");
     sem = sem_open("/my_semaphore", O_CREAT, 0644, 1);
-    cout<<"basic step done now scheduling"<<'\n';
+    // cout<<"basic step done now scheduling"<<'\n';
     
     while(true){
         if(std::cin.peek()!=EOF){
