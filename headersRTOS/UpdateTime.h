@@ -2,5 +2,5 @@
 #ifndef DisplayTime_H
 #define DisplayTime_H
 #include <vector>
-std::vector<int> DisplayTime(int reset);
+std::vector<int> updateTime(int reset,int cycle);
 #endif

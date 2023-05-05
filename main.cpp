@@ -4,7 +4,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <semaphore.h>
-#include "headersRTOS/DisplayTime.h"
+#include "headersRTOS/UpdateTime.h"
 #include "headersRTOS/StepCounter.h"
 #include "headersRTOS/Task.h"
 #include "headersRTOS/Create_Task.h"
@@ -18,16 +18,15 @@ Task CountTime=create_task("T");
 Task StepCount=create_task("S");
 priority_queue<Task> tasklist;
 sem_t *sem;
-
 void CountTimer(){
     cout<<"Current Time : ";
     if(CountTime.variables.find("time")==CountTime.variables.end()){
         CountTime.variables["time"]=1;
-        for(auto v : DisplayTime(0)) cout<<v<<" ";
+        for(auto v : updateTime(0,CpuCycle)) cout<<v<<" ";
         cout<<"\n";
     }else{
         CountTime.variables["time"]+=1;
-        for(auto v : DisplayTime(1)) cout<<v<<" ";
+        for(auto v : updateTime(1,CpuCycle)) cout<<v<<" ";
         cout<<"\n";
     }
     // cout<<"running count timer"<<'\n';
@@ -57,7 +56,8 @@ void Schedule()
                 done = 1;
             }
             else currentTask.CpuCyclesDone--;
-            CpuCycle += 1;
+            if(currentTask.name=="Heart Rate Monitoring") CpuCycle+=10;
+            else CpuCycle += 1;
             if(!done) tasklist.push(currentTask);
             else{
                 if(currentTask.periodic) tasklist.push(currentTask);

@@ -1,7 +1,7 @@
 
 #include <iostream>
 #include <ctime>
-#include "headersRTOS/DisplayTime.h"
+#include "headersRTOS/UpdateTime.h"
 #include <vector>
 #include <chrono>
 #include <thread>
@@ -11,6 +11,7 @@ using namespace std;
 vector<int> Time(3,0);
 int seconds;
 time_t now ;
+int init_cycles;
 
 void convert(int sec)
 {
@@ -25,9 +26,10 @@ void convert(int sec)
 
 
 
-vector<int>  DisplayTime(int reset) {
+vector<int>  updateTime(int reset,int cycles) {
      if(reset==0)
      {
+          init_cycles = 0;
           seconds = 0;
           now= time(0);
           tm *ltm = localtime(&now);
@@ -37,7 +39,7 @@ vector<int>  DisplayTime(int reset) {
      }
      else
      {
-          seconds++;
+          seconds = (cycles-1)/5;
      }
      convert(seconds);
      
@@ -47,10 +49,10 @@ vector<int>  DisplayTime(int reset) {
 }
 // int main()
 // {
-//     DisplayTime(0);
+//     UpdateTime(0);
 //     for(int i=0;i<10;i++)
 //     {
-//           DisplayTime(1);
+//           UpdateTime(1);
 //           std::this_thread::sleep_for(std::chrono::seconds(1));
 //     }
 // }
