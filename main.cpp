@@ -19,31 +19,34 @@ Task StepCount=create_task("S");
 priority_queue<Task> tasklist;
 sem_t *sem;
 void CountTimer(){
-    cout<<"Current Time : ";
     if(CountTime.variables.find("time")==CountTime.variables.end()){
-        CountTime.variables["time"]=1;
-        for(auto v : updateTime(0,CpuCycle)) cout<<v<<" ";
-        cout<<"\n";
+        vector<int>v=updateTime(0,CpuCycle);
+        CountTime.variables["hour"]=v[0];
+        CountTime.variables["minute"]=v[1];
+        CountTime.variables["seconds"]=v[2];
+        
     }else{
-        CountTime.variables["time"]+=1;
-        for(auto v : updateTime(1,CpuCycle)) cout<<v<<" ";
-        cout<<"\n";
+        vector<int>v=updateTime(1,CpuCycle);
+        CountTime.variables["hour"]=v[0];
+        CountTime.variables["minute"]=v[1];
+        CountTime.variables["seconds"]=v[2];
     }
-    // cout<<"running count timer"<<'\n';
-    // std::chrono::seconds(5);
+    
     
 }
 void StepCounter(){
     if(StepCount.variables.find("step")==StepCount.variables.end()){
-        StepCount.variables["step"]=1;
-    }else StepCount.variables["step"]+=1;
-    cout<<"Current Steps: "<<countSteps(1)<<"\n";
+        StepCount.variables["step"]=countSteps(0);
+    }else StepCount.variables["step"]+=countSteps(1);
+    
 }
 
 void Schedule()
 {
+    cout<<"Scheduling the two background tasks "<<endl;
     while (true)
     {   
+        // cout<<"CpuCycle is "<< CpuCycle<<endl;
         sem_wait(sem);
         if(!tasklist.empty()) {
             // cout<<"current cpu cycle :"<<CpuCycle<<'\n';
@@ -65,7 +68,7 @@ void Schedule()
         }
         sem_post(sem);
         std::this_thread::yield();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }   
     
 
@@ -90,11 +93,17 @@ int main() {
             std::getline(std::cin,input);
             // std::cout<<input<<"\n";
             sem_wait(sem);
-            if(input == "H"){
+            if(input == "Show Heart Rate"){
                 Task temp = create_task("H");
                 cout<<temp.CpuCyclesRequired<<'\n';
                 temp.func = heartRate;
                 tasklist.push(temp);
+            }
+            if(input == "Show Steps"){
+               cout<<"No of Steps : "<<StepCount.variables["step"]<<"\n";
+            }
+            if(input == "Show Time"){
+               cout<<"Current Time : "<<CountTime.variables["hours"]<<" : "<<CountTime.variables["minute"]<<" : "<<CountTime.variables["seconds"]<<"\n";
             }
             sem_post(sem);
             // cout<<"out\n";
