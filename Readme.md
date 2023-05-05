@@ -13,11 +13,11 @@ The implementation has 4 tasks:
 To run the main file, please follow these steps:
 1. Compile the code using the following command: 
 
-```g++ -o main.o main.cpp StepCounter.cpp UpdateTime.cpp Create_Task.cpp HeartRate.cpp```
+```g++ -o main.exe main.cpp StepCounter.cpp UpdateTime.cpp Create_Task.cpp HeartRate.cpp```
 
 2. Run the executable file using the following command:
 
-```./main.o```
+```./main.exe```
 
 ## Dependencies
 This project requires the following dependencies:
